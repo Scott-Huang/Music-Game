@@ -133,3 +133,6 @@ Different patterns should have different sequences of key pressing.
 | Actual Test | 7 | +1pt for each game with different songs played <br /> -2pt for only testing one or two styles of songs |
 
 Here is the [google form link](https://docs.google.com/spreadsheets/d/1v8WOnIgNw6RBgZI1ymYYLdBXQK9f2KFGjnUTNihLy04/edit?usp=sharing) to my rubric.
+
+##### Similar games:
+I put some similar music games here so that it is easier to make sense of what this type of games look like: Musynx, INVAXION, Muse Dash, and even Beat Saber.
