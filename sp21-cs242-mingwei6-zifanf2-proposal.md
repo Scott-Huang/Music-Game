@@ -1,6 +1,7 @@
 # A Music Rhythm Game
 Mingwei Huang (mingwei6) | Moderator: Zifan Feng (zifanf2)
-This is a music game using python for CS242
+
+This is a music game using Pygame for CS242
 
 ### Abstract
 
