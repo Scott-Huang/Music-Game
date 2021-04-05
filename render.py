@@ -1,11 +1,13 @@
 import pygame
 from model.track import Track
-
-BLACK = (0,0,0)
+from model.utils import report_error
 
 pygame.font.init() # you have to call this at the start, 
                    # if you want to use this module.
-font = pygame.font.SysFont('Comic Sans MS', 32)
+score_font = pygame.font.SysFont('Comic Sans MS', 32)
+combo_font = pygame.font.SysFont('Comic Sans MS', 60)
+perform_font = pygame.font.SysFont('Comic Sans MS', 28)
+styles = {'score': score_font, 'combo': combo_font, 'perform': perform_font}
 
 def load_img(filename, size=None):
     img = pygame.image.load('res/image/'+filename)
@@ -33,6 +35,15 @@ def render_all_tracks(track_dict, key_imgs, circle_img, screen):
     for track, key_img in zip(track_dict.values(), key_imgs):
         render_track(track, key_img, circle_img, screen)
 
-def display_score(score, position, screen):
-    textsurface = font.render('Score:%d' % score, False, BLACK)
+def render_text(text, position, screen, style, color='black'):
+    if style not in styles:
+        report_error('No such text style')
+    textsurface = styles[style].render(text, False, pygame.Color(color))
+        
+    if position == 'center':
+        position = textsurface.get_rect(center=(screen.get_width()/2, screen.get_height()/2))
     screen.blit(textsurface, position)
+
+def display_score(score, position, screen):
+    render_text('Score:%d' % score, position, screen, 'score')
+
