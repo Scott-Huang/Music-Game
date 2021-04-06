@@ -8,6 +8,7 @@ and deals with key pressing event.
 import pygame
 import sys
 from pygame import key
+from pygame import mixer
 from math import ceil
 from render import display_score, load_img, render_background, render_all_tracks, render_text
 from model.circles import add_circle_per_sec
@@ -43,6 +44,8 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption(CAPTION)
 pygame.display.set_icon(load_img('icon2.png'))
+# load music
+mixer.music.load('res/music/demo.mp3')
 background = load_img('background.jpg', SIZE)
 
 # get key and circle img
@@ -68,6 +71,8 @@ score = 0
 combo = 0
 perform = ''
 
+# start the music
+mixer.music.play()
 # start game loop
 while gameloop:
     # set refresh rate
