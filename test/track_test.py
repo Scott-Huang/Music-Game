@@ -51,3 +51,6 @@ class TrackTest(unittest.TestCase):
         self.assertTrue(track.miss)
         track.update_miss(1)
         self.assertFalse(track.miss)
+
+if __name__ == '__main__':
+    unittest.main()

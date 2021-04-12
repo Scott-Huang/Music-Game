@@ -11,6 +11,11 @@ import numpy as np
 DEFAULT_CIRCLE = -1
 # max num of circles that a track can have
 MAX_CIRCLE_NUM = 10
+# perform flags
+MISS = 'MISS'
+BAD = 'BAD'
+GOOD = 'GOOD'
+PERFECT = 'PERFECT'
 
 class Track:
     """The Track class represent a track in the game.
@@ -30,12 +35,12 @@ class Track:
         self.width = width
         self.height = height
         self.position = position
+        self.key_position = (self.position[0], self.position[1] + self.height)
         # initiate an array of circles
         self.circles = np.full((MAX_CIRCLE_NUM,), DEFAULT_CIRCLE)
-        # miss flag
-        self.miss = False
-        self.miss_count = 0
-        # more flag to be added...
+        # perform flags
+        self.perform = None
+        self.count = 0
 
     def update(self, velocity):
         """Update all existing circles
@@ -87,21 +92,34 @@ class Track:
         return np.max(self.circles)
 
     def set_miss(self):
-        """Set miss and reset miss_count."""
-        self.miss = True
-        self.miss_count = 0
+        """Set miss and reset count."""
+        self.perform = MISS
+        self.count = 0
     
-    # need to be refactored since I also need to update other perform
-    def update_miss(self, duration_count):
+    def set_bad(self):
+        """Set bad and reset count."""
+        self.perform = BAD
+        self.count = 0
+    
+    def set_good(self):
+        """Set good and reset count."""
+        self.perform = GOOD
+        self.count = 0
+    
+    def set_perfect(self):
+        """Set perfect and reset count."""
+        self.perform = PERFECT
+        self.count = 0
+    
+    def update_perform(self, duration_count):
         """
-        Update miss config. Reset miss if miss_count is over threshhold.
+        Update perform config. Reset perform if count is over threshhold.
 
         Arguments:
             duration_count: The threshold to reset.
         """
-
-        if self.miss:
-            self.miss_count += 1
-            if self.miss_count > duration_count:
-                self.miss = False
-                self.miss_count = 0
+        if self.perform:
+            self.count += 1
+            if self.count > duration_count:
+                self.perform = None
+                self.count = 0

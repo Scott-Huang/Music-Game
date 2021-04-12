@@ -7,17 +7,20 @@ for missing circles and key pressing.
 
 from model.track import Track
 from model.utils import report_error
-from render import render_text
 
 # some constants on rating accuracies in sec
-MISS = -0.4
-PERFECT = 0.1
-GOOD = 0.25
-BAD = 0.4
+MISS = -0.25
+PERFECT = 0.08
+GOOD = 0.15
+BAD = 0.25
+MISS_SCORE = -20
+PERFECT_SCORE = 8
+GOOD_SCORE = 3
+BAD_SCORE = -5
 # duration of displaying performance in sec
-PERFORM_DURATION = 0.4
+PERFORM_DURATION = 0.3
 
-def miss_check(track_dict, frame, velocity):
+def score_miss(track_dict, frame, velocity):
     """Iterate through all tracks and check any missed circles.
 
     Arguments:
@@ -32,17 +35,21 @@ def miss_check(track_dict, frame, velocity):
     if frame <= 0 or velocity <= 0:
         report_error('Invalid frame rate or velocity')
 
-    miss = False
+    score = 0
     # loop through all tracks
     for track in track_dict.values():
-        if calc_accuracy(track, frame, velocity) < MISS:
-            miss = True
+        # update perform flag of the track
+        track.update_perform(PERFORM_DURATION * frame)
+
+        # find any missed circle
+        if calculate_accuracy(track, frame, velocity) < MISS:
+            score += MISS_SCORE
             track.set_miss()
             # remove missed circle
-            track.remove_circle()    
-    return miss
+            track.remove_circle()
+    return score
 
-def press_check(event, track_dict, mode, frame, velocity):
+def score_press(event, track_dict, mode, frame, velocity):
     """Iterate through all tracks and check any missed circles.
 
     Arguments:
@@ -58,25 +65,33 @@ def press_check(event, track_dict, mode, frame, velocity):
     # check arguments
     if frame <= 0 or velocity <= 0:
         report_error('Invalid frame rate or velocity')
-    # TODO
-    return False
 
-def display_performance(track_dict, frame, screen):
-    """Display performances of tracks.
+    # get the pressed key
+    index = mode.get(event.key, 0)
+    # return 0 for invalid key pressing
+    if index == 0:
+        return 0
+    # get corresponding track
+    track = track_dict[index]
+    # calculate accuracy
+    accuracy = abs(calculate_accuracy(track, frame, velocity))
+    # set score and perform
+    score = 0
+    if accuracy < PERFECT:
+        track.set_perfect()
+        score = PERFECT_SCORE
+    elif accuracy < GOOD:
+        track.set_good()
+        score = GOOD_SCORE
+    elif accuracy < BAD:
+        track.set_bad()
+        score = BAD_SCORE
+    # remove circle if valid
+    if score != 0:
+        track.remove_circle()
+    return score
 
-    Arguments:
-        track_dict: A dict with values being tracks.
-        frame: The frame rate.
-        screen: The game screen that the performance will be rendered on.
-    """
-
-    for track in track_dict.values():
-        track.update_miss(PERFORM_DURATION * frame)
-        if track.miss:
-            position = track.get_key_position()
-            render_text('miss', position, screen, style='perform')
-
-def calc_accuracy(track: Track, frame, velocity):
+def calculate_accuracy(track: Track, frame, velocity):
     """Calculate the accuracy of the most front circle.
 
     Arguments:

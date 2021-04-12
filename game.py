@@ -7,14 +7,13 @@ and deals with key pressing event.
 
 import pygame
 import sys
-from pygame import key
-from pygame import mixer
+from pygame import key, mixer
 from math import ceil
-from render import display_score, load_img, render_background, render_all_tracks, render_text
+from render import display_score, load_img, render_background, render_all_tracks, render_text_center
 from model.circles import add_circle_per_sec
-from model.utils import Keyset
 from model.track import Track
-from model.model import miss_check, press_check, display_performance
+from model.score_circles import score_miss, score_press
+from model.setting import MUSIC_FOLDER
 
 """
 The code below set pygame adapt to resolutions over 2k on windows.
@@ -29,95 +28,101 @@ if sys.platform == 'win32':
     except AttributeError:
         pass # Windows XP doesn't support monitor scaling, so just do nothing.
 
-# meta information, should be setted in the setting screen
 CAPTION = 'Music Game'
-FRAME_RATE = 60
-#SIZE = (1920, 1080)
-SIZE = (2560, 1440)
-MODE = Keyset.SIX_KEYS
-KEY_NUM = len(MODE)
-VELOCITY = 10
+FRAME_RATE = 30
 
-# Game set-up
-pygame.init()
-clock = pygame.time.Clock()
-screen = pygame.display.set_mode(SIZE)
-pygame.display.set_caption(CAPTION)
-pygame.display.set_icon(load_img('icon2.png'))
-# load music
-mixer.music.load('res/music/demo.mp3')
-background = load_img('background.jpg', SIZE)
+def update_time(sec, frame):
+    frame += 1
+    if frame >= FRAME_RATE:
+        frame = 0
+        sec += 1
+    return sec, frame
 
-# get key and circle img
-track_width = SIZE[0] // (KEY_NUM+1)
-key_img = load_img('key1.png', (track_width, track_width)).convert_alpha()
-light = pygame.Surface((key_img.get_width(), key_img.get_height()), flags=pygame.SRCALPHA)
-light.fill((50, 50, 50, 0))
-light_key_img = key_img.copy()
-light_key_img.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
-circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
-
-# initiate tracks into a dict
-tracks = {}
-for track_index in range(1, KEY_NUM+1):
-    tracks[track_index] = Track(width=track_width, height=SIZE[1]-ceil(0.5*track_width),
-                                position=(ceil(track_width*(track_index-0.5)), -1*track_width))
-
-# initiate all attributes
-gameloop = True
-sec_count = 0
-frame_count = 0
-score = 0
-combo = 0
-perform = ''
-
-# start the music
-mixer.music.play()
-# start game loop
-while gameloop:
-    # set refresh rate
-    clock.tick(FRAME_RATE)
-
-    # render background, score, and combo
-    render_background(background, screen)
-    display_score(score, (0, 0), screen)
-    render_text(str(combo), 'center', screen, style='combo')
-
-    # handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            gameloop = False
-        if event.type == pygame.KEYDOWN:
-            # update status for key being pressed
-            valid = press_check(event, tracks, MODE, FRAME_RATE, VELOCITY)
-            if valid:
-                combo += 1
-
-    # apply key pressing effects
-    key_imgs = [key_img] * KEY_NUM
+def get_key_imgs(key_img, light_key_img, key_num, mode):
+    key_imgs = [key_img] * key_num
     keys = key.get_pressed()
-    for gamekey in MODE:
+    for gamekey in mode:
         if keys[gamekey]:
-            key_imgs[MODE[gamekey]-1] = light_key_img
+            key_imgs[mode[gamekey]-1] = light_key_img
+    return key_imgs
 
-    # TODO generate circles to tracks
-    add_circle_per_sec(VELOCITY, sec_count, frame_count, tracks, 0.6)
-    # render all tracks
-    render_all_tracks(tracks, key_imgs, circle_img, screen)
-    # check miss circles
-    miss = miss_check(tracks, FRAME_RATE, VELOCITY)
-    if miss:
-        combo = 0
-    display_performance(tracks, FRAME_RATE, screen)
+def start_game(screen, size, mode, velocity, music, music_length):
+    key_num = len(mode)
 
-    # rerender all components
-    pygame.display.update()
+    # Game set-up
+    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption(CAPTION)
+    pygame.display.set_icon(load_img('icon2.png'))
+    # load music
+    mixer.music.load(MUSIC_FOLDER + music)
+    background = load_img('background.jpg', size)
 
-    # update time
-    frame_count += 1
-    if frame_count >= 60:
-        frame_count = 0
-        sec_count += 1
+    # get key and circle img
+    track_width = size[0] // (key_num+1)
+    key_img = load_img('key1.png', (track_width, track_width)).convert_alpha()
+    light = pygame.Surface((key_img.get_width(), key_img.get_height()), flags=pygame.SRCALPHA)
+    light.fill((50, 50, 50, 0))
+    light_key_img = key_img.copy()
+    light_key_img.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+    circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
 
-# close window
-pygame.quit()
+    # initiate tracks into a dict
+    tracks = {}
+    for track_index in range(1, key_num+1):
+        tracks[track_index] = Track(width=track_width, height=size[1]-ceil(0.5*track_width),
+                                    position=(ceil(track_width*(track_index-0.5)), -1*track_width))
+
+    # initiate all attributes
+    in_game = True
+    sec_count = 0
+    frame_count = 1
+    score = 0
+    combo = 0
+
+    # start the music
+    mixer.music.play()
+    # start game loop
+    while in_game:
+        # set refresh rate
+        clock.tick(FRAME_RATE)
+
+        # render background, score, and combo
+        render_background(background, screen)
+        display_score(score, (0, 0), screen)
+        render_text_center(str(combo), screen, style='combo')
+
+        # handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                in_game = False
+            if event.type == pygame.KEYDOWN:
+                # update status for key being pressed
+                received_score = score_press(event, tracks, mode, FRAME_RATE, velocity)
+                if received_score != 0:
+                    combo += 1
+                    score += received_score
+
+        # apply key pressing effects
+        key_imgs = get_key_imgs(key_img, light_key_img, key_num, mode)
+
+        # TODO generate circles to tracks
+        add_circle_per_sec(velocity, sec_count, frame_count, tracks, 0.6)
+        # render all tracks
+        render_all_tracks(tracks, key_imgs, circle_img, screen)
+        # score miss circles
+        received_score = score_miss(tracks, FRAME_RATE, velocity)
+        if received_score < 0:
+            combo = 0
+            score += received_score
+
+        # rerender all components
+        pygame.display.update()
+
+        # update time
+        sec_count, frame_count = update_time(sec_count, frame_count)
+        # stop the game if the music ends.
+        if sec_count > music_length:
+            in_game = False
+
+    return score

@@ -4,7 +4,7 @@ path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if path not in sys.path:
     sys.path.append(path)
 from model.track import Track
-from model.model import calc_accuracy, miss_check
+from model.model import calculate_accuracy, check_miss
 from utils import add_update_circle, get_track_dict
 
 class AccuracyTest(unittest.TestCase):
@@ -12,7 +12,7 @@ class AccuracyTest(unittest.TestCase):
         # test calc_accuracy return correct accuracy
         track = Track(0,1000,(0,0))
         add_update_circle(track, 800)
-        accuracy = calc_accuracy(track, 1, 1)
+        accuracy = calculate_accuracy(track, 1, 1)
         self.assertEqual(accuracy, 1000-800)
 
     def test_accuracy_pass_over(self):
@@ -20,7 +20,7 @@ class AccuracyTest(unittest.TestCase):
         # when the circle passes over the key
         track = Track(0,1000,(0,0))
         add_update_circle(track, 1200)
-        accuracy = calc_accuracy(track, 1, 1)
+        accuracy = calculate_accuracy(track, 1, 1)
         self.assertEqual(accuracy, 1000-1200)
 
 class MissTest(unittest.TestCase):
@@ -28,14 +28,14 @@ class MissTest(unittest.TestCase):
         # test miss is detected
         tracks = get_track_dict(6)
         add_update_circle(tracks[2], 1200)
-        miss = miss_check(tracks, 1, 1)
+        miss = check_miss(tracks, 1, 1)
         self.assertTrue(miss)
 
     def test_remove_miss_circle(self):
         # test miss circle is removed
         tracks = get_track_dict(6)
         add_update_circle(tracks[2], 1200)
-        miss_check(tracks, 1, 1)
+        check_miss(tracks, 1, 1)
         circles = tracks[2].get_circles()
         self.assertEqual(len(circles), 0)
 
@@ -43,7 +43,8 @@ class MissTest(unittest.TestCase):
         # test detection on no miss
         tracks = get_track_dict(6)
         add_update_circle(tracks[2], 800)
-        miss = miss_check(tracks, 1, 1)
+        miss = check_miss(tracks, 1, 1)
         self.assertFalse(miss)
     
-    
+if __name__ == '__main__':
+    unittest.main()

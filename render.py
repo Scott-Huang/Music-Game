@@ -6,12 +6,13 @@ The render.py program renders all components to the game screen.
 import pygame
 from model.track import Track
 from model.utils import report_error
+from model.setting import IMAGE_FOLDER
 
 # some fonts
 pygame.font.init()
-SCORE_FONT = pygame.font.SysFont('Comic Sans MS', 32)
+SCORE_FONT = pygame.font.SysFont('Comic Sans MS', 40)
 COMBO_FONT = pygame.font.SysFont('Comic Sans MS', 60)
-PERFORM_FONT = pygame.font.SysFont('Comic Sans MS', 28)
+PERFORM_FONT = pygame.font.SysFont('Comic Sans MS', 30)
 styles = {'score': SCORE_FONT, 'combo': COMBO_FONT, 'perform': PERFORM_FONT}
 
 def load_img(filename, size=None):
@@ -24,7 +25,7 @@ def load_img(filename, size=None):
         The loaded image.
     """
 
-    img = pygame.image.load('res/image/'+filename)
+    img = pygame.image.load(IMAGE_FOLDER+filename)
     if size:
         img = scale_img(img, size)
     return img
@@ -57,7 +58,10 @@ def render_track(track: Track, key_img, circle_img, screen):
         screen: The game screen that the track will be rendered on.
     """
 
-    screen.blit(key_img, track.get_key_position())
+    screen.blit(key_img, track.key_position)
+    perform = track.perform
+    if perform:
+        render_text(perform, track.key_position, screen, style='perform')
     for circle_position in track.get_circles():
         screen.blit(circle_img, circle_position)
 
@@ -83,7 +87,7 @@ def render_text(text, position, screen, style, color='black'):
 
     Arguments:
         text: The message to be rendered.
-        position: The position of the text, can be a tuple or 'center'.
+        position: The position of the text in the form of a tuple.
         screen: The game screen that the track will be rendered on.
         style: The style of the text, 'score', 'combo', or 'perform'.
         color: The color of the text.
@@ -94,9 +98,24 @@ def render_text(text, position, screen, style, color='black'):
         report_error('No such text style')
 
     textsurface = styles[style].render(text, False, pygame.Color(color))
-    if position == 'center':
-        position = textsurface.get_rect(center=(screen.get_width()/2, screen.get_height()/2))
+    screen.blit(textsurface, position)
 
+def render_text_center(text, screen, style, color='black'):
+    """Render text to the center of the screen.
+
+    Arguments:
+        text: The message to be rendered.
+        screen: The game screen that the track will be rendered on.
+        style: The style of the text, 'score', 'combo', or 'perform'.
+        color: The color of the text.
+    """
+
+    # validate arguments
+    if style not in styles:
+        report_error('No such text style')
+    
+    textsurface = styles[style].render(text, False, pygame.Color(color))
+    position = textsurface.get_rect(center=(screen.get_width()/2, screen.get_height()/2))
     screen.blit(textsurface, position)
 
 def display_score(score, position, screen):
