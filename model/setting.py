@@ -1,3 +1,8 @@
+"""Program Description
+
+The setting.py program holds sone constants for the game settings.
+"""
+
 import pygame
 
 MUSIC_FOLDER = './res/music/'

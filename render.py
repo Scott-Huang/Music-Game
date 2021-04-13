@@ -11,9 +11,9 @@ from model.setting import IMAGE_FOLDER
 # some fonts
 pygame.font.init()
 SCORE_FONT = pygame.font.SysFont('Comic Sans MS', 40)
-COMBO_FONT = pygame.font.SysFont('Comic Sans MS', 60)
+CENTER_FONT = pygame.font.SysFont('Comic Sans MS', 60)
 PERFORM_FONT = pygame.font.SysFont('Comic Sans MS', 30)
-styles = {'score': SCORE_FONT, 'combo': COMBO_FONT, 'perform': PERFORM_FONT}
+styles = {'score': SCORE_FONT, 'center': CENTER_FONT, 'perform': PERFORM_FONT}
 
 def load_img(filename, size=None):
     """Load an image from res/image folder.
@@ -58,10 +58,13 @@ def render_track(track: Track, key_img, circle_img, screen):
         screen: The game screen that the track will be rendered on.
     """
 
+    # render key
     screen.blit(key_img, track.key_position)
+    # render perform if any
     perform = track.perform
     if perform:
         render_text(perform, track.key_position, screen, style='perform')
+    # render circles
     for circle_position in track.get_circles():
         screen.blit(circle_img, circle_position)
 

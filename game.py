@@ -90,7 +90,7 @@ def start_game(screen, size, mode, velocity, music, music_length):
         # render background, score, and combo
         render_background(background, screen)
         display_score(score, (0, 0), screen)
-        render_text_center(str(combo), screen, style='combo')
+        render_text_center(str(combo), screen, style='center')
 
         # handle events
         for event in pygame.event.get():
