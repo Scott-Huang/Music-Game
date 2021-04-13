@@ -42,7 +42,7 @@ class Track:
         self.perform = None
         self.count = 0
 
-    def update(self, velocity):
+    def update_circles(self, velocity):
         """Update all existing circles
         
         Arguments:

@@ -6,7 +6,7 @@ from model.track import Track
 
 def add_update_circle(track: Track, velocity):
     track.add_circle()
-    track.update(velocity)
+    track.update_circles(velocity)
 
 def get_track_dict(num, height=1000):
     tracks = {}

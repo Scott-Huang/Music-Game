@@ -15,6 +15,7 @@ The game is built by only python. Here is a list of packages used:
  - Pygame
  - NumPy
  - Unittest
+ - Librosa
 
 Also, users are expected to put music files into the music folder. 
 

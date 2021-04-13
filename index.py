@@ -9,13 +9,13 @@ from model.music import get_music_length
 from render import render_background, render_text_center, load_img
 
 DEFAULT_SIZE = DefaultSetting.SCREEN_SIZES[2][1]
+TEXT_DISPLAY_TIME = 3
 
-def end_screen():
+def display_text(text, screen):
     background = load_img('background.jpg', size)
     render_background(background, screen)
-    render_text_center('Result Score is: %d, see ya!' % score, screen, 'combo')
+    render_text_center(text, screen, 'combo')
     pygame.display.update()
-    time.sleep(3)
 
 files = os.listdir(MUSIC_FOLDER)
 music_files = []
@@ -57,6 +57,11 @@ def start_main_game():
     # set the minimum to be 5 sec for debugging
     if music_length < 5 or music_length > 1000:
         report_error('The music is too long or too shortlkfds')
+
+    display_text('Loading music file... (To be implemented)', screen)
+    # TODO analyze music beats and generate circles
+    time.sleep(TEXT_DISPLAY_TIME)
+
     global score
     score = start_game(screen, size, mode, velocity, music, music_length)
 
@@ -64,7 +69,7 @@ menu = pygame_menu.Menu('Game Menu', DEFAULT_SIZE[0], DEFAULT_SIZE[1],
                        theme=pygame_menu.themes.THEME_BLUE)
 
 menu.add.dropselect('Music :', list(zip(music_files, music_files)), onchange=set_music, default=0)
-menu.add.dropselect('Size :', DefaultSetting.SCREEN_SIZES, onchange=set_size, default=2)
+menu.add.dropselect('Screen Size :', DefaultSetting.SCREEN_SIZES, onchange=set_size, default=2)
 menu.add.selector('Velocity: ', DefaultSetting.VELOCITIES, onchange=set_velocity, default=1)
 menu.add.selector('Mode: ', DefaultSetting.MODES, onchange=set_mode, default=1)
 menu.add.button('Start', start_main_game)
@@ -73,6 +78,7 @@ menu.add.button('Quit', pygame_menu.events.EXIT)
 # display menu
 menu.mainloop(screen)
 
-end_screen()
+display_text('Result Score is: %d, see ya!' % score, screen)
+time.sleep(TEXT_DISPLAY_TIME)
 # close window
 pygame.quit()
