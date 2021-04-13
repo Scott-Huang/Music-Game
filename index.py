@@ -17,7 +17,7 @@ from render import render_background, render_text_center, load_img
 
 # global constants
 DEFAULT_SIZE = DefaultSetting.SCREEN_SIZES[2][1]
-TEXT_DISPLAY_TIME = 3
+TEXT_DISPLAY_TIME = 2
 
 # game initiation, reading music files
 files = os.listdir(MUSIC_FOLDER)
@@ -36,7 +36,7 @@ velocity = DefaultSetting.VELOCITIES[1][1]
 score = 0
 screen = pygame.display.set_mode(DEFAULT_SIZE)
 
-def display_text(text, screen):
+def display_text(text, screen, size):
     """Display text and rerender the screen."""
     background = load_img('background.jpg', size)
     render_background(background, screen)
@@ -69,7 +69,7 @@ def start_main_game():
     if music_length < 5 or music_length > 1000:
         report_error('The music is too long or too shortlkfds')
 
-    display_text('Loading music file... (To be implemented)', screen)
+    display_text('Loading music file... (To be implemented)', screen, DEFAULT_SIZE)
     # TODO analyze music beats and generate circles
     time.sleep(TEXT_DISPLAY_TIME)
 
@@ -93,7 +93,7 @@ menu.add.button('Quit', pygame_menu.events.EXIT)
 menu.mainloop(screen)
 
 # display result
-display_text('Result Score is: %d, see ya!' % score, screen)
+display_text('Result Score is: %d, see ya!' % score, screen, size)
 time.sleep(TEXT_DISPLAY_TIME)
 # close window
 pygame.quit()
