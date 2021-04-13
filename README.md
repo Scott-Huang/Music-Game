@@ -9,6 +9,9 @@ falls to the keys in the screen. The game will be auto-generated based on the in
 All components in the game interface are built, including background, keys, circles, tracks, and so on.
 Also the key pressing effect is added. --4/5/21
 
+Add a menu screen for starting the game and set the game parameters. Circles will be canceled
+and give feedback after corresponding keys are pressed. --4/12/21
+
 ### Environment set up
 The game is built by only python. Here is a list of packages used:
 
@@ -16,11 +19,13 @@ The game is built by only python. Here is a list of packages used:
  - NumPy
  - Unittest
  - Librosa
+ - FFmpeg
 
 Also, users are expected to put music files into the music folder. 
 
 ### Design Structure
-The game program will run in game.py and the graphics will be rendered in render.py. The game model and 
+The game program will be started by index.py, and then call the main game function in game.py 
+while the graphics will be rendered in render.py. The game models and 
 other funcalities are all in the model folder.
 
 ### Credit
