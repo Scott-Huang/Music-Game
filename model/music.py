@@ -35,9 +35,9 @@ def retrieve_beats(music, freq):
     Returns:
         An array that contains the time in second that all beats occur.
     """
-
-    _, beats = librosa.beat.beat_track(music, freq)
-    beats = librosa.frames_to_time(beats, sr=freq)
+    beats = librosa.onset.onset_detect(music, freq, units='time')
+    #_, beats = librosa.beat.beat_track(music, freq)
+    #beats = librosa.frames_to_time(beats, sr=freq)
     return beats
 
 def retrieve_repetition(music, freq):
@@ -48,7 +48,8 @@ def retrieve_repetition(music, freq):
         freq: The frequency of the music array.
     Returns:
         repetition: An array that partitions segments of the music
-                    into categories.
+                    into categories, where category 0 means the default
+                    category.
         seg_length: The length in second that one segment lasts.
     """
 
@@ -69,7 +70,7 @@ def retrieve_repetition(music, freq):
     width = min_repetition + REPETITION_INTERVAl
     
     # a repetition array that partitions segments into categories
-    repetition = np.zeros(R.shape[0])
+    repetition = np.zeros(R.shape[0], dtype=int)
     current_category = 1
     # loop through R
     i = 0
@@ -108,19 +109,23 @@ def retrieve_repetition(music, freq):
     
     return repetition, seg_length
 
-def get_patterned_beats(filename):
+def get_patterned_beats(filename, time_delay=0):
     """Retrieve the beats of a music file and analyze its
     repeting patterns.
 
     Arguments:
         filename: The file name of the music file.
     Returns:
-        beats: A list of time that beats occur.
-        patterns: A list of patterns corresponding to beats.
+        beats: A list of time in ms that beats occur.
+        patterns: A list of patterns corresponding to beats
+                  where pattern 0 means the default pattern
+                  (no pattern).
     """
 
     music, freq = librosa.load(MUSIC_FOLDER+filename)
     beats = retrieve_beats(music, freq)
+    beats = beats[beats>time_delay]
     repetition, seg_length = retrieve_repetition(music, freq)
     patterns = repetition[(beats / seg_length).astype(int)]
+    beats = beats * 1000
     return list(beats), list(patterns)

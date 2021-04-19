@@ -4,12 +4,19 @@ The circle.py program will be initiated once the music is selected,
 it will then create a timeline for generating circles into tracks.
 """
 
-import numpy as np
-from model.track import Track
+from pygame import mixer
 
-def add_circle_per_sec(velocity, sec, frame, track_dict, possibility):
-    """A hard-coded function to add circles to tracks."""
+def update_circles(velocity, track_dict, beats, patterns, pattern_library, time_delay=0):
+    generate_circles(track_dict, beats, patterns, pattern_library, time_delay)
     for track in track_dict.values():
-        track.update_circles(velocity)
-        if frame == 0 and np.random.rand() > possibility:
-            track.add_circle()
+        increment_circles(velocity, track)
+
+def increment_circles(velocity, track):
+    track.update_circles(velocity)
+
+def generate_circles(track_dict, beats, patterns, pattern_library, time_delay):
+    if beats and mixer.music.get_pos() + time_delay * 1000 > beats[0]:
+        beats.pop(0)
+        pattern = patterns.pop(0)
+        for track_index in pattern_library.get_tracks(pattern):
+            track_dict[track_index].add_circle()

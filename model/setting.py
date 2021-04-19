@@ -21,6 +21,14 @@ class DefaultSetting():
     """The DefaultSetting class have all setting attributes of
     the game setting.
     """
-    SCREEN_SIZES = [('Small', (1200, 1200)), ('Medium', (1500, 1500)), ('Large', (2000, 2000))]
-    VELOCITIES = [('Slow', 16), ('Medium', 20), ('Fast', 25)]
+    SMALL_SCREEN_SIZE = (1250, 1050)
+    MEDIUM_SCREEN_SIZE = (1800, 1400)
+    LARGE_SCREEN_SIZE = (2500, 2000)
+    SLOW_VELOCITY = 16
+    MEDIUM_VELOCITY = 20
+    FAST_VELOCITY = 25
+
+    SCREEN_SIZES = [('Small', SMALL_SCREEN_SIZE), ('Medium', MEDIUM_SCREEN_SIZE),
+                    ('Large', LARGE_SCREEN_SIZE)]
+    VELOCITIES = [('Slow', SLOW_VELOCITY), ('Medium', MEDIUM_VELOCITY), ('Fast', FAST_VELOCITY)]
     MODES = [('Four keys', Keyset.FOUR_KEYS), ('Six keys', Keyset.SIX_KEYS), ('Eight keys', Keyset.EIGHT_KEYS)]

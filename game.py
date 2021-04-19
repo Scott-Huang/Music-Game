@@ -10,10 +10,12 @@ import sys
 from pygame import key, mixer
 from math import ceil
 from render import display_score, load_img, render_background, render_all_tracks, render_text_center
-from model.circles import add_circle_per_sec
+from model.circles import add_circle_per_sec, update_circles
 from model.track import Track
 from model.score_circles import score_miss, score_press
 from model.setting import MUSIC_FOLDER
+from model.music import get_patterned_beats
+from model.pattern_library import PatternLibrary
 
 """
 The code below set pygame adapt to resolutions over 2k on windows.
@@ -60,6 +62,7 @@ def start_game(screen, size, mode, velocity, music, music_length):
 
     # get key and circle img
     track_width = size[0] // (key_num+1)
+    track_height = size[1]-ceil(0.5*track_width)
     key_img = load_img('key1.png', (track_width, track_width)).convert_alpha()
     light = pygame.Surface((key_img.get_width(), key_img.get_height()), flags=pygame.SRCALPHA)
     light.fill((50, 50, 50, 0))
@@ -67,11 +70,16 @@ def start_game(screen, size, mode, velocity, music, music_length):
     light_key_img.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
     circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
 
+    beats, patterns = get_patterned_beats(music)
+    pattern_library = PatternLibrary(max(patterns), key_num)
+
     # initiate tracks into a dict
     tracks = {}
     for track_index in range(1, key_num+1):
-        tracks[track_index] = Track(width=track_width, height=size[1]-ceil(0.5*track_width),
+        tracks[track_index] = Track(width=track_width, height=track_height,
                                     position=(ceil(track_width*(track_index-0.5)), -1*track_width))
+
+    time_delay = track_height / velocity / FRAME_RATE
 
     # initiate all attributes
     in_game = True
@@ -106,8 +114,8 @@ def start_game(screen, size, mode, velocity, music, music_length):
         # apply key pressing effects
         key_imgs = get_key_imgs(key_img, light_key_img, key_num, mode)
 
-        # TODO generate circles to tracks
-        add_circle_per_sec(velocity, sec_count, frame_count, tracks, 0.6)
+        # generate and update circles to tracks
+        update_circles(velocity, tracks, beats, patterns, pattern_library, time_delay)
         # render all tracks
         render_all_tracks(tracks, key_imgs, circle_img, screen)
         # score miss circles

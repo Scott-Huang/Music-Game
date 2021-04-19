@@ -10,7 +10,7 @@ import numpy as np
 # default value to represent a null circle
 DEFAULT_CIRCLE = -1
 # max num of circles that a track can have
-MAX_CIRCLE_NUM = 10
+MAX_CIRCLE_NUM = 15
 # perform flags
 MISS = 'MISS'
 BAD = 'BAD'
