@@ -31,6 +31,18 @@ if sys.platform == 'win32':
 CAPTION = 'Music Game'
 FRAME_RATE = 30
 
+class Game():
+    class GameParameters():
+        def __init__(self):
+            pass
+
+    def __init__(self, parameters: GameParameters):
+        pass
+
+    def mainloop(self):
+        pass
+
+
 def update_time(sec, frame):
     """Increment time."""
     frame += 1

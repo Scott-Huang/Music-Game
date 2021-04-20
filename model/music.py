@@ -41,7 +41,8 @@ def retrieve_beats(music, freq):
     return beats
 
 def retrieve_repetition(music, freq):
-    """
+    """Partition the music into segments with a label of their repeating
+    patterns.
 
     Arguments:
         music: An array that represents a music.
@@ -123,9 +124,15 @@ def get_patterned_beats(filename, time_delay=0):
     """
 
     music, freq = librosa.load(MUSIC_FOLDER+filename)
+    # get rhythm of the music
     beats = retrieve_beats(music, freq)
+    # filter out the starting part
     beats = beats[beats>time_delay]
+    # get repetition
     repetition, seg_length = retrieve_repetition(music, freq)
+    # assign beats into these patterns
     patterns = repetition[(beats / seg_length).astype(int)]
+    # convert into ms
     beats = beats * 1000
+    # return a list so that we can pop the elements when circles are added
     return list(beats), list(patterns)
