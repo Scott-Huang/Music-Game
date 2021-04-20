@@ -5,18 +5,45 @@ it will then create a timeline for generating circles into tracks.
 """
 
 from pygame import mixer
+from model.pattern_library import PatternLibrary
+from model.music import get_patterned_beats
 
-def update_circles(velocity, track_dict, beats, patterns, pattern_library, time_delay=0):
-    generate_circles(track_dict, beats, patterns, pattern_library, time_delay)
-    for track in track_dict.values():
-        increment_circles(velocity, track)
+class CircleHandler():
+    """The CircleHandler class is responsible for generating circles."""
 
-def increment_circles(velocity, track):
-    track.update_circles(velocity)
+    def __init__(self, filename, key_num, time_delay=0):
+        """Class constructor of CircleHandler.
 
-def generate_circles(track_dict, beats, patterns, pattern_library, time_delay):
-    if beats and mixer.music.get_pos() + time_delay * 1000 > beats[0]:
-        beats.pop(0)
-        pattern = patterns.pop(0)
-        for track_index in pattern_library.get_tracks(pattern):
-            track_dict[track_index].add_circle()
+        Arguments:
+            filename: The name of music file.
+            key_num: The number of keys in the keyset.
+        """
+
+        self.beats, self.patterns = get_patterned_beats(filename)
+        self.pattern_library = PatternLibrary(max(self.patterns), key_num)
+        self.time_delay = time_delay
+
+    def update_circles(self, velocity, track_dict):
+        """Update circles in tracks.
+
+        Arguments:
+            velocity: The velocity of circles will be incremented.
+            track_dict: A dict with values being tracks.
+        """
+
+        self.generate_circles(track_dict)
+        for track in track_dict.values():
+            CircleHandler.increment_circles(velocity, track)
+
+    @staticmethod
+    def increment_circles(velocity, track):
+        """Increment circle positions in each track."""
+        track.update_circles(velocity)
+
+    def generate_circles(self, track_dict):
+        """Generate circles to tracks if beats occur."""
+        if self.beats and mixer.music.get_pos() + self.time_delay * 1000 > self.beats[0]:
+            self.beats.pop(0)
+            self.pattern = self.patterns.pop(0)
+            for track_index in self.pattern_library.get_track_index(self.pattern):
+                track_dict[track_index].add_circle()

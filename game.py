@@ -10,12 +10,10 @@ import sys
 from pygame import key, mixer
 from math import ceil
 from render import display_score, load_img, render_background, render_all_tracks, render_text_center
-from model.circles import add_circle_per_sec, update_circles
+from model.circles import CircleHandler
 from model.track import Track
 from model.score_circles import score_miss, score_press
 from model.setting import MUSIC_FOLDER
-from model.music import get_patterned_beats
-from model.pattern_library import PatternLibrary
 
 """
 The code below set pygame adapt to resolutions over 2k on windows.
@@ -34,6 +32,7 @@ CAPTION = 'Music Game'
 FRAME_RATE = 30
 
 def update_time(sec, frame):
+    """Increment time."""
     frame += 1
     if frame >= FRAME_RATE:
         frame = 0
@@ -41,6 +40,7 @@ def update_time(sec, frame):
     return sec, frame
 
 def get_key_imgs(key_img, light_key_img, key_num, mode):
+    """Lighten keys if they are pressed."""
     key_imgs = [key_img] * key_num
     keys = key.get_pressed()
     for gamekey in mode:
@@ -48,30 +48,41 @@ def get_key_imgs(key_img, light_key_img, key_num, mode):
             key_imgs[mode[gamekey]-1] = light_key_img
     return key_imgs
 
+def init_screen(size):
+    """Initiate the screen."""
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption(CAPTION)
+    pygame.display.set_icon(load_img('icon2.png'))
+    return screen
+
+def init_components(size, track_width):
+    """Initiate all image resources."""
+    # background img
+    background = load_img('background.jpg', size)
+    # key img
+    key_img = load_img('key1.png', (track_width, track_width)).convert_alpha()
+    # lightened key img
+    light = pygame.Surface((key_img.get_width(), key_img.get_height()), flags=pygame.SRCALPHA)
+    light.fill((50, 50, 50, 0))
+    light_key_img = key_img.copy()
+    light_key_img.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
+    # circle img
+    circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
+    return background, key_img, light_key_img, circle_img
+
 def start_game(screen, size, mode, velocity, music, music_length):
     key_num = len(mode)
 
     # Game set-up
     clock = pygame.time.Clock()
-    screen = pygame.display.set_mode(size)
-    pygame.display.set_caption(CAPTION)
-    pygame.display.set_icon(load_img('icon2.png'))
+    screen = init_screen(size)
     # load music
     mixer.music.load(MUSIC_FOLDER + music)
-    background = load_img('background.jpg', size)
 
-    # get key and circle img
     track_width = size[0] // (key_num+1)
     track_height = size[1]-ceil(0.5*track_width)
-    key_img = load_img('key1.png', (track_width, track_width)).convert_alpha()
-    light = pygame.Surface((key_img.get_width(), key_img.get_height()), flags=pygame.SRCALPHA)
-    light.fill((50, 50, 50, 0))
-    light_key_img = key_img.copy()
-    light_key_img.blit(light, (0, 0), special_flags=pygame.BLEND_RGBA_ADD)
-    circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
-
-    beats, patterns = get_patterned_beats(music)
-    pattern_library = PatternLibrary(max(patterns), key_num)
+    # get key and circle img
+    background, key_img, light_key_img, circle_img = init_components(size, track_width)
 
     # initiate tracks into a dict
     tracks = {}
@@ -80,6 +91,7 @@ def start_game(screen, size, mode, velocity, music, music_length):
                                     position=(ceil(track_width*(track_index-0.5)), -1*track_width))
 
     time_delay = track_height / velocity / FRAME_RATE
+    circle_handler = CircleHandler(music, key_num, time_delay)
 
     # initiate all attributes
     in_game = True
@@ -115,7 +127,7 @@ def start_game(screen, size, mode, velocity, music, music_length):
         key_imgs = get_key_imgs(key_img, light_key_img, key_num, mode)
 
         # generate and update circles to tracks
-        update_circles(velocity, tracks, beats, patterns, pattern_library, time_delay)
+        circle_handler.update_circles(velocity, tracks)
         # render all tracks
         render_all_tracks(tracks, key_imgs, circle_img, screen)
         # score miss circles
