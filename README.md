@@ -12,6 +12,9 @@ Also the key pressing effect is added. --4/5/21
 Add a menu screen for starting the game and set the game parameters. Circles will be canceled
 and give feedback after corresponding keys are pressed. --4/12/21
 
+The game can now be auto-generated given the chosen music file. It can extract the on-set strength
+of the music and generate circle patterns to fit the rhythm of the music. --4/19/21
+
 ### Environment set up
 The game is built by only python. Here is a list of packages used:
 
@@ -21,7 +24,7 @@ The game is built by only python. Here is a list of packages used:
  - Librosa
  - FFmpeg
 
-Also, users are expected to put music files into the music folder. 
+Also, users are expected to put music files into the res/music folder.
 
 ### Design Structure
 The game program will be started by index.py, and then call the main game function in game.py 
