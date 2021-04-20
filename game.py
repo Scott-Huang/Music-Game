@@ -70,7 +70,19 @@ def init_components(size, track_width):
     circle_img = load_img('circle.png', (track_width, track_width)).convert_alpha()
     return background, key_img, light_key_img, circle_img
 
+def init_tracks(track_width, track_height, key_num):
+    """Initiate all tracks."""
+    tracks = {}
+    # the keys of tracks match directly the mode
+    for track_index in range(1, key_num+1):
+        tracks[track_index] = Track(width=track_width, height=track_height,
+                                    position=(ceil(track_width*(track_index-0.5)), -1*track_width))
+    return tracks
+
 def start_game(screen, size, mode, velocity, music, music_length):
+    """Start the main game and run the game loop.
+    This will be refactored into a game class later.
+    """
     key_num = len(mode)
 
     # Game set-up
@@ -85,10 +97,7 @@ def start_game(screen, size, mode, velocity, music, music_length):
     background, key_img, light_key_img, circle_img = init_components(size, track_width)
 
     # initiate tracks into a dict
-    tracks = {}
-    for track_index in range(1, key_num+1):
-        tracks[track_index] = Track(width=track_width, height=track_height,
-                                    position=(ceil(track_width*(track_index-0.5)), -1*track_width))
+    tracks = init_tracks(track_width, track_height, key_num)
 
     time_delay = track_height / velocity / FRAME_RATE
     circle_handler = CircleHandler(music, key_num, time_delay)
