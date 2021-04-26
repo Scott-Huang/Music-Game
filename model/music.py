@@ -57,7 +57,6 @@ def correlation_matrix(music, freq):
     return librosa.segment.recurrence_matrix(chroma_stack,
                                              width=REPETITION_INTERVAl, sym=True)
 
-
 def retrieve_repetition(music, freq):
     """Partition the music into segments with a label of their repeating
     patterns.
@@ -83,10 +82,25 @@ def retrieve_repetition(music, freq):
     indices = np.arange(min_repetition, dtype=int)
     # the width between two possible related segments
     width = min_repetition + REPETITION_INTERVAl
-    
+
     # a repetition array that partitions segments into categories
     repetition = np.zeros(R.shape[0], dtype=int)
     current_category = 1
+
+    def __set_patterns(index_i, index_j, category):
+        # assigned i,j to the same category
+        repetition[indices+index_i] = category
+        repetition[indices+j] = category
+        index_i += min_repetition
+        index_j += min_repetition
+
+        # try to extend i,j for further correlation
+        while R[index_i,index_j] and j < R.shape[0] - min_repetition:
+            repetition[index_i] = category
+            repetition[index_j] = category
+            index_i += 1
+            index_j += 1
+
     # loop through R
     i = 0
     while i < R.shape[0] - min_repetition:
@@ -94,9 +108,8 @@ def retrieve_repetition(music, freq):
             i += 1
             continue
 
-        # loop through R to find segments that are related to i
+        # loop through R to find segments that are related to segment i
         j = i + width
-        temp_i = i
         while j < R.shape[0] - min_repetition:
             if not repetition[indices+j].any() and R[(indices+i,indices+j)].all():
                 if not repetition[i]:
@@ -105,20 +118,8 @@ def retrieve_repetition(music, freq):
                     current_category += 1
                 else:
                     category = repetition[i]
-
-                # assigned i,j to the same category
-                repetition[indices+i] = category
-                repetition[indices+j] = category
-                temp_i += min_repetition
-                j += min_repetition
-
-                # try to extend i,j for further correlation
-                while R[temp_i,j] and j < R.shape[0] - min_repetition:
-                    repetition[temp_i] = category
-                    repetition[j] = category
-                    temp_i += 1
-                    j += 1
-
+                __set_patterns(i, j, category)
+                i += min_repetition
             j += 1
         i += 1
     
@@ -166,7 +167,7 @@ class MusicAnalyzer():
         HOP_LENGTH = 512
         N_FFT = 2048*4
 
-        music, sample_rate = librosa.load(MUSIC_FOLDER+music_file)  # getting information from the file
+        music, sample_rate = librosa.load(MUSIC_FOLDER+music_file)
         # getting music features(amp & freq) over time
         stft = np.abs(librosa.stft(music, hop_length=HOP_LENGTH, n_fft=N_FFT))
         # converting feature to decibal

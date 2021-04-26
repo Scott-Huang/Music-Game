@@ -44,7 +44,7 @@ class PatternLibrary():
         """Get the track index of circles being added to given the pattern categories."""
         if pattern != self.current_pattern:
             self.sequences[self.current_pattern].reset_index()
-            self.current_pattern = pattern
+            self.current_pattern = pattern #2
         return self.sequences[self.current_pattern].get_element()
     
     class Sequence():
@@ -62,7 +62,7 @@ class PatternLibrary():
                 shuffle: A bool whether to shuffle the sequence.
             """
 
-            self.sequence = sequence
+            self.sequence = sequence #[(1,2)]
             self.length = len(sequence)
             if self.length <= 0:
                 report_error('Empty pattern sequence')

@@ -111,7 +111,7 @@ def generate_patterns(generate_size=GENERATE_SIZE, key_num=KEY_NUM):
         elif function == get_random_spontaneous:
             return [get_random_spontaneous(randint(2,key_num//2+1+1)) for _ in range(size)]
         return function(size)
-    
+
     pattern = []
     while generate_size:
         step_size = min(randint(1,key_num//2), generate_size)

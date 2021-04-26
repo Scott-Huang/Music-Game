@@ -7,6 +7,8 @@ import pygame
 
 MUSIC_FOLDER = './res/music/'
 IMAGE_FOLDER = './res/image/'
+CAPTION = 'Music Game'
+FRAME_RATE = 30
 
 class Keyset():
     """The Keyset class have different types of key sets

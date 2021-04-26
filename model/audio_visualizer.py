@@ -208,7 +208,7 @@ class AudioVisualizer():
         length = 0
 
         for frequencies in FREQ_GROUPS:
-            categories = []
+            freq_channels = []
             s = frequencies["end"] - frequencies["start"]
             count = frequencies["count"]
             reminder = s%count
@@ -216,18 +216,18 @@ class AudioVisualizer():
             rng = frequencies["start"]
 
             for _ in range(count):
-                arr = None
+                channel = None
                 if reminder > 0:
                     reminder -= 1
-                    arr = np.arange(start=rng, stop=rng + step + 2)
+                    channel = np.arange(rng, rng+step+2)
                     rng += step + 3
                 else:
-                    arr = np.arange(start=rng, stop=rng + step + 1)
+                    channel = np.arange(rng, rng+step+1)
                     rng += step + 2
-                categories.append(arr)
+                freq_channels.append(channel)
                 length += 1
 
-            tmp_bars.append(categories)
+            tmp_bars.append(freq_channels)
 
         angle_dt = 360 / length
         ang = 0
@@ -248,19 +248,19 @@ class AudioVisualizer():
         poly = []
 
         t = pygame.time.get_ticks()
-        deltaTime = (t - self.last_frame) / 1000
+        time_interval = (t - self.last_frame) / 1000
         self.last_frame = t
-        self.timeCount += deltaTime
+        self.timeCount += time_interval
 
         for bar in self.bars:
             for bar_channel in bar:
-                bar_channel.update_all(deltaTime, pygame.mixer.music.get_pos() / 1000, self.analyzer)
+                bar_channel.update_all(time_interval, pygame.mixer.music.get_pos() / 1000, self.analyzer)
 
         for bar_channel in self.bars[0]:
             avg_bass += bar_channel.avg
 
         avg_bass /= len(self.bars[0])
-
+        '''
         if avg_bass > self.bass_trigger:
             if self.bass_trigger_started == 0:
                 bass_trigger_started = pygame.time.get_ticks()
@@ -296,9 +296,11 @@ class AudioVisualizer():
             self.radius = self.min_radius
 
         self.radius += self.radius_vel * deltaTime
+        '''
+        polygon_color_vel = self.update_radius(avg_bass, time_interval)
 
         for x in range(len(polygon_color_vel)):
-            value = polygon_color_vel[x]*deltaTime + self.poly_color[x]
+            value = polygon_color_vel[x]*time_interval + self.poly_color[x]
             self.poly_color[x] = value
 
         for bar in self.bars:
@@ -312,4 +314,42 @@ class AudioVisualizer():
 
         pygame.draw.polygon(screen, self.poly_color, poly)
         pygame.draw.circle(screen, self.circle_color, (self.circleX, self.circleY), int(self.radius))
+    
+    def update_radius(self, avg_bass, time_interval):
+        if avg_bass > self.bass_trigger:
+            if self.bass_trigger_started == 0:
+                bass_trigger_started = pygame.time.get_ticks()
+            if (pygame.time.get_ticks() - bass_trigger_started)/1000.0 > 2:
+                self.polygon_bass_color = generate_color()
+                bass_trigger_started = 0
+            if self.polygon_bass_color is None:
+                self.polygon_bass_color = generate_color()
+            
+            new_radius = int(avg_bass * ((self.max_radius - self.min_radius) / 
+                                         (self.max_decibel - self.min_decibel))
+                                         + (self.max_radius - self.min_radius))
+            new_radius += self.min_radius
+            self.radius_vel = (new_radius - self.radius) / UPDATE_RADIUS_SPEED
+
+            polygon_color_vel = [(self.polygon_bass_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED
+                                 for x in range(len(self.poly_color))]
+
+        elif self.radius > self.min_radius:
+            self.bass_trigger_started = 0
+            self.polygon_bass_color = None
+            self.radius_vel = (self.min_radius - self.radius) / UPDATE_RADIUS_SPEED
+            polygon_color_vel = [(self.polygon_default_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED 
+                                 for x in range(len(self.poly_color))]
+
+        else:
+            self.bass_trigger_started = 0
+            self.poly_color = self.polygon_default_color.copy()
+            self.polygon_bass_color = None
+            polygon_color_vel = [0, 0, 0]
+
+            self.radius_vel = 0
+            self.radius = self.min_radius
+
+        self.radius += self.radius_vel * time_interval
+        return polygon_color_vel
 
