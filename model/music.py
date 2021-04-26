@@ -136,3 +136,37 @@ def get_patterned_beats(filename, time_delay=0):
     beats = beats * 1000
     # return a list so that we can pop the elements when circles are added
     return list(beats), list(patterns)
+
+class MusicAnalyzer:
+    def __init__(self):
+        self.frequencies_index_ratio = None  # array for frequencies
+        self.time_index_ratio = None  # array for time
+        self.spectrogram = None  # decibels corresponding to frequency and time
+
+    def load(self, music_file):
+        # needs thinner hop_length to achieve smoother visualization
+        HOP_LENGTH = 512
+        N_FFT = 2048*4
+
+        music, sample_rate = librosa.load(MUSIC_FOLDER+music_file)  # getting information from the file
+        # getting music features(amp & freq) over time
+        stft = np.abs(librosa.stft(music, hop_length=HOP_LENGTH, n_fft=N_FFT))
+        # converting feature to decibal
+        self.spectrogram = librosa.amplitude_to_db(stft, ref=np.max)
+        # converting feature to frequencies
+        frequencies = librosa.core.fft_frequencies(n_fft=N_FFT)
+        # getting time for features
+        times = librosa.core.frames_to_time(np.arange(self.spectrogram.shape[1]),
+                                            sr=sample_rate, hop_length=HOP_LENGTH, n_fft=N_FFT)
+
+        self.time_index_ratio = len(times)/times[len(times) - 1]
+        self.frequencies_index_ratio = len(frequencies)/frequencies[len(frequencies)-1]
+
+    def get_decibel(self, target_time, freq):
+        return self.spectrogram[int(freq*self.frequencies_index_ratio)][int(target_time*self.time_index_ratio)]
+
+    def get_decibel_array(self, target_time, freq_array):
+        decibel_array = []
+        for freq in freq_array:
+            decibel_array.append(self.get_decibel(target_time,freq))
+        return decibel_array
