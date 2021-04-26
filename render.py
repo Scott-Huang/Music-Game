@@ -10,8 +10,8 @@ from model.setting import IMAGE_FOLDER
 
 # some fonts
 pygame.font.init()
-SCORE_FONT = pygame.font.SysFont('Comic Sans MS', 40)
-CENTER_FONT = pygame.font.SysFont('Comic Sans MS', 60)
+SCORE_FONT = pygame.font.SysFont('Comic Sans MS', 60)
+CENTER_FONT = pygame.font.SysFont('Comic Sans MS', 80)
 PERFORM_FONT = pygame.font.SysFont('Comic Sans MS', 30)
 styles = {'score': SCORE_FONT, 'center': CENTER_FONT, 'perform': PERFORM_FONT}
 
@@ -63,7 +63,7 @@ def render_track(track: Track, key_img, circle_img, screen):
     # render perform if any
     perform = track.perform
     if perform:
-        render_text(perform, track.key_position, screen, style='perform')
+        render_text(perform, track.key_position, screen, style='perform', color='white')
     # render circles
     for circle_position in track.get_circles():
         screen.blit(circle_img, circle_position)
@@ -123,5 +123,5 @@ def render_text_center(text, screen, style, color='black'):
 
 def display_score(score, position, screen):
     """Render the score."""
-    render_text('Score:%d' % score, position, screen, 'score')
+    render_text('Score:%d' % score, position, screen, 'score', 'white')
 
