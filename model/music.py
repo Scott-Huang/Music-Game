@@ -2,6 +2,8 @@
 
 The music.py program analyze the music and will be responsible
 for extracting the beats of the music.
+
+Reference: https://gitlab.com/avirzayev/music-visualizer.
 """
 
 import librosa
@@ -35,10 +37,26 @@ def retrieve_beats(music, freq):
     Returns:
         An array that contains the time in second that all beats occur.
     """
+
     beats = librosa.onset.onset_detect(music, freq, units='time')
-    #_, beats = librosa.beat.beat_track(music, freq)
-    #beats = librosa.frames_to_time(beats, sr=freq)
     return beats
+
+def correlation_matrix(music, freq):
+    """Calculate the identical parts among a music.
+
+    Arguments:
+        music: An array that represents a music.
+        freq: The frequency of the music array.
+    Returns:
+        A correlation matrix between music segments.
+    """
+
+    chroma = librosa.feature.chroma_cqt(music, freq,
+                                        hop_length=HOP_LENGTH)
+    chroma_stack = librosa.feature.stack_memory(chroma, n_steps=10, delay=3)
+    return librosa.segment.recurrence_matrix(chroma_stack,
+                                             width=REPETITION_INTERVAl, sym=True)
+
 
 def retrieve_repetition(music, freq):
     """Partition the music into segments with a label of their repeating
@@ -55,11 +73,7 @@ def retrieve_repetition(music, freq):
     """
 
     # calculate correlation among features of segments
-    chroma = librosa.feature.chroma_cqt(music, freq,
-                                        hop_length=HOP_LENGTH)
-    chroma_stack = librosa.feature.stack_memory(chroma, n_steps=10, delay=3)
-    R = librosa.segment.recurrence_matrix(chroma_stack,
-                                          width=REPETITION_INTERVAl, sym=True)
+    R = correlation_matrix(music, freq)
 
     # the duration of one segment in sec
     seg_length = music.shape[0] / freq / R.shape[0]
@@ -137,13 +151,17 @@ def get_patterned_beats(filename, time_delay=0):
     # return a list so that we can pop the elements when circles are added
     return list(beats), list(patterns)
 
-class MusicAnalyzer:
+class MusicAnalyzer():
+    """The MusicAnalyzer class analyzes the music features over time."""
+
     def __init__(self):
+        """MusicAnalyzer constructor."""
         self.frequencies_index_ratio = None  # array for frequencies
         self.time_index_ratio = None  # array for time
         self.spectrogram = None  # decibels corresponding to frequency and time
 
     def load(self, music_file):
+        """Load a music and analyze."""
         # needs thinner hop_length to achieve smoother visualization
         HOP_LENGTH = 512
         N_FFT = 2048*4
@@ -163,9 +181,11 @@ class MusicAnalyzer:
         self.frequencies_index_ratio = len(frequencies)/frequencies[len(frequencies)-1]
 
     def get_decibel(self, target_time, freq):
+        """Get amp in decibel of a music in the given time."""
         return self.spectrogram[int(freq*self.frequencies_index_ratio)][int(target_time*self.time_index_ratio)]
 
     def get_decibel_array(self, target_time, freq_array):
+        """Get a list of amp in decibel in the given time."""
         decibel_array = []
         for freq in freq_array:
             decibel_array.append(self.get_decibel(target_time,freq))

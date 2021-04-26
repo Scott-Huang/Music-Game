@@ -1,9 +1,33 @@
+"""Program Description
+
+The audio_visualizer.py program is responsible for displaying
+the music visualization part in the background.
+
+Reference: https://gitlab.com/avirzayev/music-visualizer.
+"""
+
 import math
 import numpy as np
 import random
 import colorsys
 import pygame
 from model.music import MusicAnalyzer
+
+# various modes of music freq
+BASS = {"start": 50, "end": 100, "count": 12}
+HEAVY = {"start": 120, "end": 250, "count": 40}
+LOW_MIDS = {"start": 251, "end": 2000, "count": 50}
+HIGH_MIDS = {"start": 2001, "end": 6000, "count": 20}
+FREQ_GROUPS = [BASS, HEAVY, LOW_MIDS, HIGH_MIDS]
+
+WHITE = [255,255,255]
+BLACK = [0,0,0]
+YELLOW = [255,255, 0]
+DEFAULT_CIRCLE_COLOR = [40,40,40]
+
+# updating speed constant parameter
+UPDATE_SPEED = 0.1
+UPDATE_RADIUS_SPEED = 0.15
 
 def rotate(vector, theta):
     """Rotate a vector using a rotation matrix."""
@@ -31,44 +55,58 @@ def generate_color():
     return [int(256 * i) for i in colorsys.hls_to_rgb(h, l, s)]
 
 class AudioBar:
+    """The AudioBar class represent a bar as a component in visualization.
+    It can update its length and color according to the music features.
+    """
 
     def __init__(self, x, y, freq, color, width=50,
                  min_height=10, max_height=100, min_decibel=-80, max_decibel=0):
+        """AudioBar constructor."""
         self.x, self.y, self.freq = x, y, freq
         self.color = color
         self.width, self.min_height, self.max_height = width, min_height, max_height
         self.height = min_height
         self.min_decibel, self.max_decibel = min_decibel, max_decibel
-        self.__decibel_height_ratio = (self.max_height - self.min_height)/(self.max_decibel - self.min_decibel)
+        # the ratio between the height space and the db space
+        self.__decibel_height_ratio = ((self.max_height - self.min_height)
+                                        / (self.max_decibel - self.min_decibel))
 
-    def update(self, dt, decibel):
+    def update(self, time_interval, decibel):
+        """Update the bar height."""
         desired_height = decibel * self.__decibel_height_ratio + self.max_height
-        speed = (desired_height - self.height)/0.1
-        self.height = clamp(speed * dt, self.min_height, self.max_height)
+        speed = (desired_height - self.height) / UPDATE_SPEED
+        self.height = clamp(speed * time_interval, self.min_height, self.max_height)
 
     def render(self, screen):
-        pygame.draw.rect(screen, self.color, (self.x, self.y + self.max_height - self.height, self.width, self.height))
+        pygame.draw.rect(screen, self.color,
+                         (self.x, self.y + self.max_height - self.height, self.width, self.height))
 
 
-class AverageAudioBar(AudioBar):
+class AudioBarGroup(AudioBar):
+    """The AudioBarGroup class contains a groups of audio bars."""
 
-    def __init__(self, x, y, rng, color, width=50, min_height=10, max_height=100, min_decibel=-80, max_decibel=0):
+    def __init__(self, x, y, rng, color, width=50,
+                 min_height=10, max_height=100, min_decibel=-80, max_decibel=0):
+        """AudioBarGroup constructor."""
         super().__init__(x, y, 0, color, width, min_height, max_height, min_decibel, max_decibel)
         self.rng = rng
         self.avg = 0
 
-    def update_all(self, dt, time, analyzer):
+    def update_all(self, time_interval, time, analyzer):
+        """Update heights of all bars."""
         self.avg = 0
         for channel in self.rng:
             self.avg += analyzer.get_decibel(time, channel)
         self.avg /= len(self.rng)
-        self.update(dt, self.avg)
+        self.update(time_interval, self.avg)
 
 
-class RotatedAverageAudioBar(AverageAudioBar):
+class RotatedAudioBarGroup(AudioBarGroup):
+    """The RotatedAudioBarGroup is a groups of audio bars after rotated position index."""
 
     def __init__(self, x, y, rng, color, angle=0, width=50,
                  min_height=10, max_height=100, min_decibel=-80, max_decibel=0):
+        """RotatedAudioBarGroup constructor."""
         super().__init__(x, y, 0, color, width, min_height,
                          max_height, min_decibel, max_decibel)
         self.rng = rng
@@ -76,49 +114,63 @@ class RotatedAverageAudioBar(AverageAudioBar):
         self.angle = angle
 
     def render(self, screen):
+        """Render all rectangular bars."""
         pygame.draw.polygon(screen, self.color, self.rect.points)
 
-    def render_c(self, screen, color):
-        pygame.draw.polygon(screen, color, self.rect.points)
-
     def update_rect(self):
+        """Update all rectangular bars."""
         self.rect = Rect(self.x, self.y, self.width, self.height)
-        self.rect.rotate(self.angle)
+        self.rect.place(self.angle)
 
 
-class Rect:
+class Rect():
+    """A rectangular bar that represent the visualized audio bar."""
 
     def __init__(self,x ,y, w, h):
+        """Rect constructor."""
         self.x, self.y, self.w, self.h = x, y, w, h
         self.points = []
         self.origin = [self.w/2,0]
         self.offset = [self.origin[0] + x, self.origin[1] + y]
-        self.rotate(0)
+        self.place(0)
 
-    def rotate(self, angle):
-        template = [
+    def place(self, angle):
+        """Place the points to the positions in screen."""
+        rect_corners = [
             (-self.origin[0], self.origin[1]),
             (-self.origin[0] + self.w, self.origin[1]),
             (-self.origin[0] + self.w, self.origin[1] - self.h),
             (-self.origin[0], self.origin[1] - self.h)
         ]
-        self.points = [move_point(rotate(xy, math.radians(angle)), self.offset) for xy in template]
+        self.points = [move_point(rotate(corners, math.radians(angle)), self.offset)
+                       for corners in rect_corners]
 
     def draw(self,screen):
-        pygame.draw.polygon(screen, (255,255, 0), self.points)
-
-BASS = {"start": 50, "stop": 100, "count": 12}
-HEAVY = {"start": 120, "stop": 250, "count": 40}
-LOW_MIDS = {"start": 251, "stop": 2000, "count": 50}
-HIGH_MIDS = {"start": 2001, "stop": 6000, "count": 20}
-FREQ_GROUPS = [BASS, HEAVY, LOW_MIDS, HIGH_MIDS]
-WHITE = [255,255,255]
-BLACK = [0,0,0]
-DEFAULT_CIRCLE_COLOR = [40,40,40]
+        """Display the rect in screen."""
+        pygame.draw.polygon(screen, YELLOW, self.points)
 
 class AudioVisualizer():
+    """The AudioVisualizer class is responsible for
+    setting the attributes of the bars and the circle to
+    match the music features over time.
+    """
+
     def __init__(self, size, music_file, bass_trigger=-30, min_decibel=-80, max_decibel=80,
                  min_radius=100, max_radius=150, polygon_default_color=WHITE):
+        """AudioVisualizer constructor
+        
+        Arguments:
+            size: The size of the screen.
+            music_file: The filename of the music file.
+            bass_trigger: The trigger threshold of bass freq.
+            min_decibel: The min decibel of the music.
+            max_decibel: The max decibel of the music.
+            min_radius: The min radius of music freq change
+                        (The music is visualized as circles).
+            max_radius: The max radius of music freq change.
+            polygon_default_color: The default color of polygon bars.
+        """
+
         self.analyzer = MusicAnalyzer()
         self.analyzer.load(music_file)
         self.screen_width = size[0]
@@ -157,7 +209,7 @@ class AudioVisualizer():
 
         for frequencies in FREQ_GROUPS:
             categories = []
-            s = frequencies["stop"] - frequencies["start"]
+            s = frequencies["end"] - frequencies["start"]
             count = frequencies["count"]
             reminder = s%count
             step = int(s/count)
@@ -184,10 +236,10 @@ class AudioVisualizer():
             all_freq = []
             for category in group:
                 all_freq.append(
-                    RotatedAverageAudioBar(self.circleX+self.radius*math.cos(math.radians(ang - 90)),
-                                           self.circleY+self.radius*math.sin(math.radians(ang - 90)),
-                                           category, (255, 0, 255), angle=ang, width=10,
-                                           max_height=self.screen_height))
+                    RotatedAudioBarGroup(self.circleX+self.radius*math.cos(math.radians(ang - 90)),
+                                         self.circleY+self.radius*math.sin(math.radians(ang - 90)),
+                                         category, (255, 0, 255), angle=ang, width=10,
+                                         max_height=self.screen_height))
                 ang += angle_dt
             self.bars.append(all_freq)
         
@@ -200,12 +252,12 @@ class AudioVisualizer():
         self.last_frame = t
         self.timeCount += deltaTime
 
-        for b1 in self.bars:
-            for b in b1:
-                b.update_all(deltaTime, pygame.mixer.music.get_pos() / 1000, self.analyzer)
+        for bar in self.bars:
+            for bar_channel in bar:
+                bar_channel.update_all(deltaTime, pygame.mixer.music.get_pos() / 1000, self.analyzer)
 
-        for b in self.bars[0]:
-            avg_bass += b.avg
+        for bar_channel in self.bars[0]:
+            avg_bass += bar_channel.avg
 
         avg_bass /= len(self.bars[0])
 
@@ -217,19 +269,22 @@ class AudioVisualizer():
                 bass_trigger_started = 0
             if self.polygon_bass_color is None:
                 self.polygon_bass_color = generate_color()
-            newr = (self.min_radius +
-                    int(avg_bass * ((self.max_radius - self.min_radius) / 
-                                    (self.max_decibel - self.min_decibel)) + (self.max_radius - self.min_radius)))
-            self.radius_vel = (newr - self.radius) / 0.15
+            
+            new_radius = int(avg_bass * ((self.max_radius - self.min_radius) / 
+                                         (self.max_decibel - self.min_decibel))
+                                         + (self.max_radius - self.min_radius))
+            new_radius += self.min_radius
+            self.radius_vel = (new_radius - self.radius) / UPDATE_RADIUS_SPEED
 
-            polygon_color_vel = [(self.polygon_bass_color[x] - self.poly_color[x])/0.15
+            polygon_color_vel = [(self.polygon_bass_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED
                                  for x in range(len(self.poly_color))]
 
         elif self.radius > self.min_radius:
             self.bass_trigger_started = 0
             self.polygon_bass_color = None
-            self.radius_vel = (self.min_radius - self.radius) / 0.15
-            polygon_color_vel = [(self.polygon_default_color[x] - self.poly_color[x])/0.15 for x in range(len(self.poly_color))]
+            self.radius_vel = (self.min_radius - self.radius) / UPDATE_RADIUS_SPEED
+            polygon_color_vel = [(self.polygon_default_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED 
+                                 for x in range(len(self.poly_color))]
 
         else:
             self.bass_trigger_started = 0
@@ -246,14 +301,15 @@ class AudioVisualizer():
             value = polygon_color_vel[x]*deltaTime + self.poly_color[x]
             self.poly_color[x] = value
 
-        for b1 in self.bars:
-            for b in b1:
-                b.x, b.y = (self.circleX+self.radius*math.cos(math.radians(b.angle - 90)),
-                            self.circleY+self.radius*math.sin(math.radians(b.angle - 90)))
-                b.update_rect()
+        for bar in self.bars:
+            for bar_channel in bar:
+                bar_channel.x, bar_channel.y = (self.circleX+self.radius*math.cos(math.radians(bar_channel.angle - 90)),
+                            self.circleY+self.radius*math.sin(math.radians(bar_channel.angle - 90)))
+                bar_channel.update_rect()
 
-                poly.append(b.rect.points[3])
-                poly.append(b.rect.points[2])
+                poly.append(bar_channel.rect.points[3])
+                poly.append(bar_channel.rect.points[2])
 
         pygame.draw.polygon(screen, self.poly_color, poly)
         pygame.draw.circle(screen, self.circle_color, (self.circleX, self.circleY), int(self.radius))
+
