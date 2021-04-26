@@ -11,16 +11,16 @@ from model.music import get_patterned_beats
 class CircleHandler():
     """The CircleHandler class is responsible for generating circles."""
 
-    def __init__(self, filename, key_num, time_delay=0):
+    def __init__(self, filename, mode, time_delay=0):
         """Class constructor of CircleHandler.
 
         Arguments:
             filename: The name of music file.
-            key_num: The number of keys in the keyset.
+            mode: The keyset mode.
         """
 
         self.beats, self.patterns = get_patterned_beats(filename)
-        self.pattern_library = PatternLibrary(max(self.patterns), key_num)
+        self.pattern_library = PatternLibrary(max(self.patterns), mode)
         self.time_delay = time_delay
 
     def update_circles(self, velocity, track_dict):

@@ -87,7 +87,7 @@ class Game():
         self.__init_tracks()
 
         self.time_delay = self.track_height / self.velocity / FRAME_RATE
-        self.circle_handler = CircleHandler(self.music, self.key_num, self.time_delay)
+        self.circle_handler = CircleHandler(self.music, self.mode, self.time_delay)
         self.visualizer = AudioVisualizer(self.size, self.music)
 
 

@@ -18,22 +18,18 @@ WEIGHT_DECAY = 0.04
 def get_random_sequence(sequence):
     """Generate a sequence from a random position."""
     start_index = randint(0, len(sequence))
+    if bool(random.getrandbits(1)):
+        sequence.reverse()
     return sequence[start_index:] + sequence[:start_index]
 
 def get_left_sequence(seq_length, key_num=KEY_NUM):
     """Generate a random sequence in the left side."""
-    sequence = range(1, key_num // 2 + 1)
-    if bool(random.getrandbits(1)):
-        sequence = reversed(sequence)
-    sequence = [(i+1,) for i in sequence]
+    sequence = [(i,) for i in range(1, key_num // 2 + 1)]
     return get_random_sequence(sequence)[:seq_length]
 
 def get_right_sequence(seq_length, key_num=KEY_NUM):
     """Generate a random sequence in the right side."""
-    sequence = range(key_num // 2 + 1, key_num + 1)
-    if bool(random.getrandbits(1)):
-        sequence = reversed(sequence)
-    sequence = [(i+1,) for i in sequence]
+    sequence = [(i,) for i in range(key_num // 2 + 1, key_num + 1)]
     return get_random_sequence(sequence)[:seq_length]
 
 def get_repetition(circle, repetition):

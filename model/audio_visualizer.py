@@ -260,43 +260,6 @@ class AudioVisualizer():
             avg_bass += bar_channel.avg
 
         avg_bass /= len(self.bars[0])
-        '''
-        if avg_bass > self.bass_trigger:
-            if self.bass_trigger_started == 0:
-                bass_trigger_started = pygame.time.get_ticks()
-            if (pygame.time.get_ticks() - bass_trigger_started)/1000.0 > 2:
-                self.polygon_bass_color = generate_color()
-                bass_trigger_started = 0
-            if self.polygon_bass_color is None:
-                self.polygon_bass_color = generate_color()
-            
-            new_radius = int(avg_bass * ((self.max_radius - self.min_radius) / 
-                                         (self.max_decibel - self.min_decibel))
-                                         + (self.max_radius - self.min_radius))
-            new_radius += self.min_radius
-            self.radius_vel = (new_radius - self.radius) / UPDATE_RADIUS_SPEED
-
-            polygon_color_vel = [(self.polygon_bass_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED
-                                 for x in range(len(self.poly_color))]
-
-        elif self.radius > self.min_radius:
-            self.bass_trigger_started = 0
-            self.polygon_bass_color = None
-            self.radius_vel = (self.min_radius - self.radius) / UPDATE_RADIUS_SPEED
-            polygon_color_vel = [(self.polygon_default_color[x] - self.poly_color[x])/UPDATE_RADIUS_SPEED 
-                                 for x in range(len(self.poly_color))]
-
-        else:
-            self.bass_trigger_started = 0
-            self.poly_color = self.polygon_default_color.copy()
-            self.polygon_bass_color = None
-            polygon_color_vel = [0, 0, 0]
-
-            self.radius_vel = 0
-            self.radius = self.min_radius
-
-        self.radius += self.radius_vel * deltaTime
-        '''
         polygon_color_vel = self.update_radius(avg_bass, time_interval)
 
         for x in range(len(polygon_color_vel)):
@@ -352,4 +315,3 @@ class AudioVisualizer():
 
         self.radius += self.radius_vel * time_interval
         return polygon_color_vel
-
