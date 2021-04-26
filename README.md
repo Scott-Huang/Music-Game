@@ -15,6 +15,8 @@ and give feedback after corresponding keys are pressed. --4/12/21
 The game can now be auto-generated given the chosen music file. It can extract the on-set strength
 of the music and generate circle patterns to fit the rhythm of the music. --4/19/21
 
+New backgrounds with a music visualization while playing. --4/25/21
+
 ### Environment set up
 The game is built by only python. Here is a list of packages used:
 
@@ -24,7 +26,9 @@ The game is built by only python. Here is a list of packages used:
  - Librosa
  - FFmpeg
 
-Also, users are expected to put music files into the res/music folder.
+Besides, users are expected to put music files into the res/music folder, and
+they can put any background images into res/image folder
+with file name starting with 'background' as well.
 
 ### Design Structure
 The game program will be started by index.py, and then call the main game function in game.py 
@@ -40,3 +44,8 @@ The key image is a free resource from
 The circles image is from 
 ©<a href='https://pngimg.com/image/87349'>pngimg.com</a>
 with CC 4.0 BY-NC License.
+
+The background images are free resources from
+ - ©Jessica Lewis from<a href='https://www.pexels.com/photo/brown-and-black-cut-away-acoustic-guitar-1010519/'>Pexels</a>
+ - ©Rahul from <a href='https://www.pexels.com/photo/lighted-candle-695644/'>Pexels</a> 
+ - Pixabay from <a href='https://www.pexels.com/photo/gray-scale-of-city-skyline-photography-164357/'>Pexels</a>
