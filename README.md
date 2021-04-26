@@ -48,4 +48,4 @@ with CC 4.0 BY-NC License.
 The background images are free resources from
  - ©Jessica Lewis from<a href='https://www.pexels.com/photo/brown-and-black-cut-away-acoustic-guitar-1010519/'>Pexels</a>
  - ©Rahul from <a href='https://www.pexels.com/photo/lighted-candle-695644/'>Pexels</a> 
- - Pixabay from <a href='https://www.pexels.com/photo/gray-scale-of-city-skyline-photography-164357/'>Pexels</a>
+ - ©Pixabay from <a href='https://www.pexels.com/photo/gray-scale-of-city-skyline-photography-164357/'>Pexels</a>
