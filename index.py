@@ -10,7 +10,7 @@ import time
 import pygame
 import pygame_menu
 from game import Game
-from model.setting import DefaultSetting, Keyset, MUSIC_FOLDER, IMAGE_FOLDER
+from model.setting import DefaultSetting, MUSIC_FOLDER, IMAGE_FOLDER
 from model.utils import report_error
 from model.music import get_music_length
 from render import render_background, render_text_center, load_img
@@ -18,6 +18,7 @@ from render import render_background, render_text_center, load_img
 # global constants
 DEFAULT_SIZE = DefaultSetting.LARGE_SCREEN_SIZE
 TEXT_DISPLAY_TIME = 2
+SELECTION_SIZE = 8
 
 # game initiation, reading music files
 files = os.listdir(MUSIC_FOLDER)
@@ -64,7 +65,7 @@ def set_velocity(_, selected_velocity):
 def set_mode(_, selected_mode):
     parameters.mode = selected_mode
 
-def init_game():
+def prepare_game():
     """Initiate the game and return the length of music."""
     music_length = get_music_length(parameters.music)
     # music should be longer than 30 secs at least
@@ -82,9 +83,10 @@ pygame.init()
 menu = pygame_menu.Menu('Game Menu', DEFAULT_SIZE[0], DEFAULT_SIZE[1],
                        theme=pygame_menu.themes.THEME_BLUE)
 # menu widgets
-menu.add.dropselect('Music :', list(zip(music_files, music_files)), onchange=set_music, default=0)
+menu.add.dropselect('Music :', list(zip(music_files, music_files)), onchange=set_music,
+                    default=0, selection_box_height=SELECTION_SIZE)
 menu.add.dropselect('Background :', list(zip(background_images, background_images)),
-                    onchange=set_background, default=0)
+                    onchange=set_background, default=0, selection_box_height=SELECTION_SIZE)
 menu.add.dropselect('Screen Size :', DefaultSetting.SCREEN_SIZES, onchange=set_size, default=2)
 menu.add.selector('Velocity: ', DefaultSetting.VELOCITIES, onchange=set_velocity, default=1)
 menu.add.selector('Mode: ', DefaultSetting.MODES, onchange=set_mode, default=1)
@@ -94,7 +96,7 @@ menu.add.button('Quit', pygame_menu.events.EXIT)
 # display menu
 menu.mainloop(screen)
 # loading screen
-init_game()
+prepare_game()
 # start game
 game = Game(parameters)
 game.mainloop()

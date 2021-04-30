@@ -155,7 +155,7 @@ class AudioVisualizer():
     match the music features over time.
     """
 
-    def __init__(self, size, music_file, bass_trigger=-30, min_decibel=-80, max_decibel=80,
+    def __init__(self, size, music_file, bass_trigger=-30, min_decibel=-50, max_decibel=100,
                  min_radius=100, max_radius=150, polygon_default_color=WHITE):
         """AudioVisualizer constructor
         
@@ -242,6 +242,8 @@ class AudioVisualizer():
                                          max_height=self.screen_height))
                 ang += angle_dt
             self.bars.append(all_freq)
+        
+        #[10-12, 200-220, 500-550]
         
     def render(self, screen):
         avg_bass = 0

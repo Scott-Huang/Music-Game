@@ -118,8 +118,9 @@ def retrieve_repetition(music, freq):
                     current_category += 1
                 else:
                     category = repetition[i]
+
                 __set_patterns(i, j, category)
-                i += min_repetition
+                j += min_repetition
             j += 1
         i += 1
     
